@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String        @id @default(uuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  name        String
+  email       String
+  cnpj        String        @unique
+  cellphone   String
+  departments Department[]
+  employees   User[]
+  ServiceCall ServiceCall[]
+}
+
+model Department {
+  id             String        @id @default(uuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  name           String
+  abbreviation   String
+  priority       Int
+  place          String
+  members        User[]
+  serviceCalls   ServiceCall[]
+  organizationId String
+  Organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model User {
+  id             String        @id @default(uuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now())
+  name           String
+  email          String        @unique
+  password       String
+  role           String
+  userType       String
+  serviceCalls   ServiceCall[]
+  organizationId String
+  departmentId   String
+  Organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Department     Department    @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model ServiceCall {
+  id               String        @id @default(uuid())
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now())
+  initiatedAt      DateTime?
+  finishedAt       DateTime?
+  longDescription  String?
+  shortDescription String
+  currentState     Int
+  priority         Int
+  userId           String?
+  organizationId   String?
+  departmentId     String?
+  User             User?         @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  Organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  Department       Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+}
